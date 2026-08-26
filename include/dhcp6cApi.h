@@ -165,12 +165,11 @@ typedef struct {
  * - Exactly two outcomes are distinguished: the retrieval succeeded, or it did not.
  * - **Neither outcome has a name in this interface.** This header declares no status
  *   enumeration, defines no status macro and includes no other header, and no other file
- *   in this repository defines a status name either. Earlier revisions of this
- *   documentation named the two outcomes STATUS_SUCCESS and STATUS_FAILURE; neither name
- *   is defined by this interface, so neither can be compiled against it, and both are
- *   withdrawn here rather than left standing as a promise a caller cannot use. Other
- *   RDK-B HAL headers define macros of those names - each its own private copy - and
- *   none of them is visible through this header, so a caller must not assume one is.
+ *   in this repository defines a status name either, so there is no name here for a
+ *   caller to compile against. Other RDK-B HAL headers do define status macros -
+ *   `STATUS_SUCCESS` and `STATUS_FAILURE` among them, each a private definition of the
+ *   header that declares it - and none of them is visible through this header, so a
+ *   caller must not assume that one of them applies to these two accessors.
  * - **Neither outcome has a numeric value in this interface either.** No success value
  *   and no failure value is stated by this header or by the repository specification, so
  *   a caller must not compare the result against a literal and a test must not assert
@@ -275,29 +274,27 @@ typedef struct {
  *       interface changes either way: the call is a read, it stores no setting, and a
  *       failed call leaves nothing for a caller to undo or retry differently.
  *
- * @returns An `int` reporting the outcome of the retrieval synchronously. This interface
- *          distinguishes exactly two outcomes, named by the block this interface ships as
- *          STATUS_SUCCESS and STATUS_FAILURE. Neither name is defined by this header or by
- *          anything it includes, so a caller resolves them from its own platform headers;
- *          the return-domain contract on the DHCPV6C_HAL_APIS group above states how a
- *          caller decides which of the two it was given, and it should be read before this
- *          value is compared against anything.
- * @retval STATUS_SUCCESS The client's state was read and the structure pInfo addresses is
- *          populated, subject to the count and bound rules above.
- * @retval STATUS_FAILURE The information could not be retrieved. This interface does not
- *          enumerate the conditions that produce it and does not state how much of pInfo
- *          was written, so a caller treats the whole structure as unusable. On the outcome that denotes success, the E-Router client's
- *          state was read and the structure pInfo addresses is populated, so the caller
- *          may read every member subject to the count and bound rules above. On the
- *          outcome that denotes failure, nothing was retrieved and the caller must not
- *          read any member of the structure; it re-checks the pointer it passed, since a
- *          rejected argument is one of the causes this single outcome covers, and
- *          otherwise treats the E-Router client's state as unavailable for now and
- *          re-reads later rather than substituting a default such as a zero lease. The
- *          reason for a failure is not recoverable from the return value and has to be
- *          sought in the vendor log. A failure is not evidence that the client does not
- *          exist on the product, and a success is not evidence that it does:
- *          `Optional Components` states that this interface establishes neither.
+ * @returns An `int` reporting the outcome of the retrieval synchronously. Exactly two
+ *          outcomes are distinguished - the E-Router client's state was retrieved, or it
+ *          was not - and this interface gives neither of them a symbolic name and neither
+ *          of them a numeric value: this header declares no status enumeration, defines no
+ *          status macro and includes no other header, and no other file in this repository
+ *          names or values either outcome. A caller therefore resolves the two outcomes
+ *          from its own platform status definitions, having established with its vendor
+ *          that the implementation reports them, and treats the value as opaque otherwise;
+ *          it must not compare the value against a literal, and a test must not assert
+ *          one. On the outcome that reports a successful retrieval the post-condition
+ *          above applies and the structure may be read. On the outcome that reports a
+ *          failure nothing was retrieved: the caller re-checks the pointer it passed,
+ *          since a rejected argument is one of the causes that one outcome covers, and
+ *          otherwise treats the E-Router client's state as unavailable and re-reads later
+ *          rather than substituting a default such as a zero lease. Failures are not
+ *          distinguishable from one another - one outcome covers every reason a retrieval
+ *          can fail, and this interface offers no error code, error string or retrieval
+ *          call for the reason, so the vendor log is the only place it can be found.
+ *          Neither outcome is evidence about the client's presence on the product:
+ *          `Optional Components` states that this interface establishes neither presence
+ *          nor absence.
  *
  * @note This interface does not establish whether this call may block, and it states no
  *       bound on how long it may take - no timeout argument, no cancellation call, no
@@ -370,31 +367,29 @@ int ert_dhcp6c_get_info(dhcp6cInfo_t *pInfo);
  *       treat a zeroed member as meaning that a value is absent. Nothing inside the
  *       interface changes either way: the call is a read and stores no setting.
  *
- * @returns An `int` reporting the outcome of the retrieval synchronously. This interface
- *          distinguishes exactly two outcomes, named by the block this interface ships as
- *          STATUS_SUCCESS and STATUS_FAILURE. Neither name is defined by this header or by
- *          anything it includes, so a caller resolves them from its own platform headers;
- *          the return-domain contract on the DHCPV6C_HAL_APIS group above states how a
- *          caller decides which of the two it was given, and it should be read before this
- *          value is compared against anything.
- * @retval STATUS_SUCCESS The client's state was read and the structure pInfo addresses is
- *          populated, subject to the count and bound rules above.
- * @retval STATUS_FAILURE The information could not be retrieved. This interface does not
- *          enumerate the conditions that produce it and does not state how much of pInfo
- *          was written, so a caller treats the whole structure as unusable. On the outcome that denotes success, the ECM client's state
- *          was read and the structure pInfo addresses is populated, so the caller may read
- *          every member subject to the count and bound rules above. On the outcome that
- *          denotes failure, nothing was retrieved and the caller must not read any member
- *          of the structure; it re-checks the pointer it passed, since a rejected argument
- *          is one of the causes this single outcome covers, and otherwise treats the ECM
- *          client's state as unavailable for now and re-reads later rather than
- *          substituting a default such as a zero lease. The reason for a failure is not
- *          recoverable from the return value and has to be sought in the vendor log. In
- *          particular a failure does not mean the modem holds no lease, and it is **not**
- *          evidence that the ECM client is absent from the product - which matters here
- *          because this declaration is present on platforms that have no embedded cable
- *          modem. `Optional Components` states that this interface establishes neither
- *          presence nor absence from either outcome.
+ * @returns An `int` reporting the outcome of the retrieval synchronously. Exactly two
+ *          outcomes are distinguished - the ECM client's state was retrieved, or it was
+ *          not - and this interface gives neither of them a symbolic name and neither of
+ *          them a numeric value: this header declares no status enumeration, defines no
+ *          status macro and includes no other header, and no other file in this repository
+ *          names or values either outcome. A caller therefore resolves the two outcomes
+ *          from its own platform status definitions, having established with its vendor
+ *          that the implementation reports them, and treats the value as opaque otherwise;
+ *          it must not compare the value against a literal, and a test must not assert
+ *          one. On the outcome that reports a successful retrieval the post-condition
+ *          above applies and the structure may be read. On the outcome that reports a
+ *          failure nothing was retrieved: the caller re-checks the pointer it passed,
+ *          since a rejected argument is one of the causes that one outcome covers, and
+ *          otherwise treats the ECM client's state as unavailable and re-reads later
+ *          rather than substituting a default such as a zero lease. Failures are not
+ *          distinguishable from one another - one outcome covers every reason a retrieval
+ *          can fail, and this interface offers no error code, error string or retrieval
+ *          call for the reason, so the vendor log is the only place it can be found. In
+ *          particular the failure outcome does not mean the modem holds no lease, and it
+ *          is **not** evidence that the ECM client is absent from the product - which
+ *          matters here because this declaration is present on platforms that have no
+ *          embedded cable modem. `Optional Components` states that this interface
+ *          establishes neither presence nor absence from either outcome.
  *
  * @note This interface does not establish whether this call may block, and it states no
  *       bound on how long it may take - no timeout argument, no cancellation call, no
