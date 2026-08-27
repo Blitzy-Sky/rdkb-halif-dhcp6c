@@ -5,12 +5,20 @@
 | Date | Comment | Version |
 | --- | --- | --- |
 | 2024-07-19 | Initial release. DHCP6C HAL interface header migrated to GitHub under RDKB-52499. | 1.0.0 |
-| 2024-09-16 | Maintenance release. `CHANGELOG.md` records the addition of the `dhcp6cInfo_t` structure to `dhcp6cApi.h`. | 1.0.1 |
+| 2024-09-16 | Maintenance release. The repository-root changelog records the addition of the `dhcp6cInfo_t` structure to `dhcp6cApi.h`. | 1.0.1 |
 | 2026-08-24 | Specification rewritten to the canonical RDK-B HAL topic set: both declared APIs named under `API Surface`, the public types and defines documented, the four version identities separated, the observable state values enumerated, and the previously unresolved footprint and timeout requirements replaced with explicit statements. Describes the interface at tag `1.0.1`. | Unreleased |
 
-**Provenance of this page.** It was renamed from `docs/pages/DHCP6ChalSpec.md` to `docs/pages/halSpec.md` in the same change that rewrote it against the canonical topic set. Git records a rename only where the two versions still resemble each other, and a full rewrite does not, so `git log --follow -- docs/pages/halSpec.md` begins at that change: the revisions before it are reached with `git log -- docs/pages/DHCP6ChalSpec.md`. That resemblance is measured, and the threshold is 50% by default, so lowering it to git's floor \- `git log --follow -M1% -- docs/pages/halSpec.md` \- is worth trying first: where it pairs the two paths it shows both stretches of history in one listing, and where the rewrite kept too little of the original for git to pair them at any threshold the second command above remains the only route to the earlier revisions.
+**Provenance of this page.** It was renamed from `docs/pages/DHCP6ChalSpec.md` to the canonical `docs/pages/` specification page in the same change that rewrote it against the canonical topic set. Git records a rename only where the two versions still resemble each other, and a full rewrite does not, so a `--follow` listing of the canonical path begins at that change, and the revisions before it are reached by listing the legacy path instead:
 
-Dates come from `CHANGELOG.md` where it records one — it dates `1.0.0` as 2024-07-19. It records **no** date for `1.0.1`, so the date above is the date of the `1.0.1` tag. The last row is not covered by a release tag, so it is marked `Unreleased` rather than given a number this repository has not issued.
+```sh
+git log --follow -- docs/pages/halSpec.md
+git log --follow -M1% -- docs/pages/halSpec.md
+git log -- docs/pages/DHCP6ChalSpec.md
+```
+
+That resemblance is measured, and the threshold is 50% by default, so lowering it to git's floor with the second command above is worth trying first: where it pairs the two paths it shows both stretches of history in one listing, and where the rewrite kept too little of the original for git to pair them at any threshold the third command remains the only route to the earlier revisions.
+
+Dates come from the repository-root changelog where it records one — it dates `1.0.0` as 2024-07-19. It records **no** date for `1.0.1`, so the date above is the date of the `1.0.1` tag. The last row is not covered by a release tag, so it is marked `Unreleased` rather than given a number this repository has not issued.
 
 Four version identities exist around this interface, and a reader who conflates them will draw the wrong conclusion about what a caller can rely on:
 
@@ -19,7 +27,7 @@ Four version identities exist around this interface, and a reader who conflates 
 - **Interface version** \- **none exists.** `include/dhcp6cApi.h` defines no version macro of any kind, so a caller can neither test the interface revision at compile time nor read it at run time, and cannot compile conditionally against one. See `Variability Management`.
 - **Generated-site version string** \- `docs/generate_docs.sh` derives `PROJECT_VERSION` from `git describe --tags`, which yields a string of the form `<tag>-<commits since that tag>-g<abbreviated commit>` whenever the tree is ahead of a tag. That string identifies a position in history, not a version of the interface or of this document, and must not be read as one.
 
-*Derived from `CHANGELOG.md`, this repository's tag list, `include/dhcp6cApi.h` and `docs/generate_docs.sh`.*
+*Derived from the repository-root changelog, this repository's tag list, `include/dhcp6cApi.h` and `docs/generate_docs.sh`.*
 
 ## Acronyms
 
@@ -57,7 +65,7 @@ The surface is deliberately narrow, and its shape is the most important thing to
 
 **No dedicated `RDK-B` middleware service owns this interface.** Most HALs in this corpus are driven by one owning service, and the caller of the `HAL` is that service. The `RDK-B` inventory records no such service for DHCP6C: it appears in no row of the inventory's table of services to stop before exercising a `HAL` directly, and is listed among the components that have no service dependency. The caller is therefore whichever `RDK-B` component or test harness needs `DHCPv6` client state, and it links the vendor library directly. There is consequently no service to stop before exercising this interface, and no service whose state a caller must take into account.
 
-*Derived from `include/dhcp6cApi.h` (the file-level description and the complete declared surface) and the `RDK-B` superproject `README.md`, which summarizes this component as a small read-mostly surface over the vendor's DHCPv6 client for lease and configuration state and records the absence of an owning service. Where the two differed, the header governed.*
+*Derived from `include/dhcp6cApi.h` (the file-level description and the complete declared surface) and the `RDK-B` superproject README, which summarizes this component as a small read-mostly surface over the vendor's DHCPv6 client for lease and configuration state and records the absence of an owning service. Where the two differed, the header governed.*
 
 ## Optional Components
 
@@ -114,7 +122,7 @@ All APIs are expected to be called from multiple processes. Due to this concurre
 
 This is compatible with the single-threaded expectation stated under `Blocking calls`: the two constrain different things. Several processes may hold this interface at once, while each individual caller is expected to drive it from one thread and therefore to need calls that return rather than suspend.
 
-*Derived from this repository's previous specification revision, which states the multiple-process expectation, corroborated against `include/dhcp6cApi.h`: the group-level statement carried by both declarations' shared documentation block (`:207-209`) records that an implementation must expect calls from several processes and protect its own state accordingly, and cites this topic for the requirement rather than establishing it. The header declares no process affinity, no lock and no shared context anywhere, so nothing in it constrains how that protection is achieved.*
+<em>Derived from this repository's previous specification revision, which states the multiple-process expectation, corroborated against `include/dhcp6cApi.h`: the group-level statement carried by both declarations' shared documentation block (`:207-209`) records that an implementation must expect calls from several processes and protect its own state accordingly, and cites this topic for the requirement rather than establishing it. The header declares no process affinity, no lock and no shared context anywhere, so nothing in it constrains how that protection is achieved.</em>
 
 ### Memory Model
 
@@ -231,11 +239,11 @@ To ensure the highest quality and reliability, it is strongly recommended that t
 
 Furthermore, both the `HAL` wrapper and any third-party software interacting with it must prioritize robust memory management practices. This includes meticulous allocation, deallocation, and error handling to guarantee a stable and leak-free operation. The ownership rules this interface defines are stated under `Memory Model`; the short form is that the caller owns the one structure that crosses the interface.
 
-**Documentation freshness.** Every topic here closes with an italic line naming, in that topic's own body, the source its content derives from, and any change to a source so cited obliges a review of the topics that cite it. The sources are `include/dhcp6cApi.h`, `CHANGELOG.md`, `CONTRIBUTING.md`, `docs/generate_docs.sh`, the `RDK-B` superproject `README.md`, and this repository's previous specification revision — the last of these wherever a statement predates this revision and nothing in the header establishes it, in which case the topic says so. A renamed, added or removed declaration is the trigger that matters most, because every identifier this document names is asserted to exist in the header. This repository defines no `CODEOWNERS` file, so the responsible reviewer is the maintainer group that `CONTRIBUTING.md` directs contributions to: raise an issue at `github.com/rdkcentral/rdkb-halif-dhcp6c/issues` and open a pull request for review, which that document states the team reviews and merges.
+**Documentation freshness.** Every topic here closes with an italic line naming, in that topic's own body, the source its content derives from, and any change to a source so cited obliges a review of the topics that cite it. The sources are `include/dhcp6cApi.h`, the repository-root changelog, the repository's contribution guide, `docs/generate_docs.sh`, the `RDK-B` superproject README, and this repository's previous specification revision — the last of these wherever a statement predates this revision and nothing in the header establishes it, in which case the topic says so. A renamed, added or removed declaration is the trigger that matters most, because every identifier this document names is asserted to exist in the header. This repository defines no `CODEOWNERS` file, so the responsible reviewer is the maintainer group that the repository's contribution guide directs contributions to: raise an issue at `github.com/rdkcentral/rdkb-halif-dhcp6c/issues` and open a pull request for review, which that document states the team reviews and merges.
 
 **Verification limit.** The `RDK-B` inventory records that this `HAL` has no owning middleware service and **is not available on the HUB6 or XER10 reference platforms**, so exercising it requires other hardware. Every runtime statement in this document is therefore derived from the interface definition — the two declarations and their documentation comments in `include/dhcp6cApi.h` — and from this repository's own specification. **None of it has been confirmed by executing the `HAL` on reference hardware, and none of it is presented as observed behavior.** Where this interface does not establish a behavior, this document says so rather than supplying a plausible value.
 
-*Derived from this repository's previous specification revision, `CONTRIBUTING.md`, the absence of a `CODEOWNERS` file in this repository, and the `RDK-B` superproject `README.md` for platform availability.*
+*Derived from this repository's previous specification revision, the repository's contribution guide, the absence of a `CODEOWNERS` file in this repository, and the `RDK-B` superproject README for platform availability.*
 
 ### Licensing
 
@@ -283,7 +291,7 @@ All `HAL` function prototypes and datatype definitions are available in the `dhc
 
 This topic describes how the objects and calls of this interface relate to one another — the relationship an integrator needs in order to sequence calls correctly and to interpret a result, and which is not recoverable from the two signatures alone.
 
-The interface has one central concept: a **`DHCPv6` client**, owned and operated by the vendor implementation, whose current configuration and lease state this interface reports. There are two such clients, one for the `E-Router` and one for the `ECM`, and each has exactly one accessor. Everything this interface does is a read of one of them.
+The interface has one central concept: a `DHCPv6` client, owned and operated by the vendor implementation, whose current configuration and lease state this interface reports. There are two such clients, one for the `E-Router` and one for the `ECM`, and each has exactly one accessor. Everything this interface does is a read of one of them.
 
 #### Object Lifecycles
 
@@ -307,7 +315,7 @@ The interface has one central concept: a **`DHCPv6` client**, owned and operated
 
 ### Data Structures and Defines
 
-Every public type and valued macro a caller constructs, populates or interprets is listed here. All three are declared in [`include/dhcp6cApi.h`](../../include/dhcp6cApi.h), between the include guard and the `DHCPV6C_HAL_APIS` Doxygen group, and the header documents each structure member on the member itself — so the generated reference is the place to read a field's own description, and this topic is the index to it.
+Every public type and valued macro a caller constructs, populates or interprets is listed here. All three are declared in `include/dhcp6cApi.h`, between the include guard and the `DHCPV6C_HAL_APIS` Doxygen group, and the header documents each structure member on the member itself — so the generated reference is the place to read a field's own description, and this topic is the index to it.
 
 | Definition | Kind | Represents |
 | --- | --- | --- |
@@ -315,7 +323,7 @@ Every public type and valued macro a caller constructs, populates or interprets 
 | `MAX_IPV6_ADDR_LIST_SIZE` | macro, value `3` | Maximum number of `DNS` addresses the structure can carry, and therefore the capacity of `dnsAddrList`. |
 | `dhcp6cInfo_t` | struct typedef, 16 members | One `DHCPv6` client's identity, assigned addressing, `DNS` list and lease timing, as reported by the vendor implementation. |
 
-**`dhcp6cInfo_t`** is the only structure this interface defines. It is allocated by the caller and filled by the implementation — never the other way round — and it is the sole out-parameter of both functions. Its members are, in declaration order:
+`dhcp6cInfo_t` is the only structure this interface defines. It is allocated by the caller and filled by the implementation — never the other way round — and it is the sole out-parameter of both functions. Its members are, in declaration order:
 
 | Member | Type | Constraint | Meaning |
 | --- | --- | --- | --- |
@@ -339,7 +347,7 @@ Every public type and valued macro a caller constructs, populates or interprets 
 Three facts about that structure decide whether a caller reads it correctly, and none of them is visible from the member names:
 
 1. **The address fields are raw bytes, not presentation-format strings.** `ipAddr`, `prefix`, `gw`, `dhcpServer` and each entry of `dnsAddrList` are `unsigned char` arrays of exactly `IPV6_ADDR_SIZE` bytes — the wire form of an `IPv6` address. A caller that needs a textual address must format the bytes itself, and must not pass any of these fields to a string function or print it as text.
-2. **`numOfDns` bounds the valid index range of `dnsAddrList`.** The array's capacity is `MAX_IPV6_ADDR_LIST_SIZE`, which is `3`, and `numOfDns` reports how many of those entries are populated. A caller must read entries `0` to `numOfDns - 1` only; this interface does not state what the remaining entries contain, and does not state whether an implementation may report a `numOfDns` greater than the capacity, so a defensive caller clamps the count to `MAX_IPV6_ADDR_LIST_SIZE` before indexing.
+2. `numOfDns` **bounds the valid index range of `dnsAddrList`.** The array's capacity is `MAX_IPV6_ADDR_LIST_SIZE`, which is `3`, and `numOfDns` reports how many of those entries are populated. A caller must read entries `0` to `numOfDns - 1` only; this interface does not state what the remaining entries contain, and does not state whether an implementation may report a `numOfDns` greater than the capacity, so a defensive caller clamps the count to `MAX_IPV6_ADDR_LIST_SIZE` before indexing.
 3. **This interface defines no status name at all.** The two outcomes both functions report are unnamed here: the header declares no status enumeration, defines no status macro and includes no other header, and no other file in this repository defines one either. A caller takes the two outcomes from the platform's common `RDK-B` status definitions and compares against those definitions rather than against an assumed numeric value. `Internal Error Handling` states the consequences.
 
 There are **no callback typedefs** in this interface, and no function-pointer members in the structure; `Asynchronous Notification Model` records what follows from that.
@@ -352,18 +360,18 @@ This interface declares **two** functions, both listed below by exact identifier
 
 This topic is also the boundary between the two ways of reading this document. A reader who came for an overview can stop above it; a reader with a question about a specific call, a field or a state starts here.
 
-Per-API detail — the argument's direction and ownership, the pre-conditions, every return value and what a caller should do about each — is carried by the Doxygen block on each declaration in [`include/dhcp6cApi.h`](../../include/dhcp6cApi.h). Both declarations sit inside that header's `DHCPV6C_HAL_APIS` Doxygen group, in the order shown, so the generated reference presents them together on one page. Line numbers are deliberately not cited: the header's documentation comments change as they are maintained, so a line reference would go stale, whereas the identifiers and the group name will not.
+Per-API detail — the argument's direction and ownership, the pre-conditions, every return value and what a caller should do about each — is carried by the Doxygen block on each declaration in [include/dhcp6cApi.h](../../include/dhcp6cApi.h). Both declarations sit inside that header's `DHCPV6C_HAL_APIS` Doxygen group, in the order shown, so the generated reference presents them together on one page. Line numbers are deliberately not cited: the header's documentation comments change as they are maintained, so a line reference would go stale, whereas the identifiers and the group name will not.
 
 **DHCPv6 client information retrieval (2):**
 
 | API | Declared in | Purpose |
 | --- | --- | --- |
-| `ert_dhcp6c_get_info` | [`include/dhcp6cApi.h`](../../include/dhcp6cApi.h), first declaration of `DHCPV6C_HAL_APIS` | Retrieves the current state and configuration of the `E-Router` `DHCPv6` client into a caller-allocated `dhcp6cInfo_t`. Returns a status; the structure's contents are meaningful only on success. |
-| `ecm_dhcp6c_get_info` | [`include/dhcp6cApi.h`](../../include/dhcp6cApi.h), second declaration of `DHCPV6C_HAL_APIS` | Retrieves the current state and configuration of the `ECM` (Embedded Cable Modem) `DHCPv6` client into a caller-allocated `dhcp6cInfo_t`. Returns a status; the structure's contents are meaningful only on success. |
+| `ert_dhcp6c_get_info` | [include/dhcp6cApi.h](../../include/dhcp6cApi.h), first declaration of `DHCPV6C_HAL_APIS` | Retrieves the current state and configuration of the `E-Router` `DHCPv6` client into a caller-allocated `dhcp6cInfo_t`. Returns a status; the structure's contents are meaningful only on success. |
+| `ecm_dhcp6c_get_info` | [include/dhcp6cApi.h](../../include/dhcp6cApi.h), second declaration of `DHCPV6C_HAL_APIS` | Retrieves the current state and configuration of the `ECM` (Embedded Cable Modem) `DHCPv6` client into a caller-allocated `dhcp6cInfo_t`. Returns a status; the structure's contents are meaningful only on success. |
 
 Both take one argument, `dhcp6cInfo_t *pInfo`, which is an out-parameter the caller allocates and owns, and both return `int`. They differ only in which client they read.
 
-*Derived from `include/dhcp6cApi.h` — the complete set of declarations in the header, and the `@brief`, `@param` and return documentation on each.*
+*Derived from [include/dhcp6cApi.h](../../include/dhcp6cApi.h) — the complete set of declarations in the header, and the `@brief`, `@param` and return documentation on each.*
 
 ### Sequence Diagram
 

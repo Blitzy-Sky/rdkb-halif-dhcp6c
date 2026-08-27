@@ -35,7 +35,7 @@
  * caller that needs to observe a lease being acquired, renewed, rebound or lost polls
  * one of the two accessors and compares successive results. The repository
  * specification states both facts, under `Initialization and Startup` and
- * `Asynchronous Notification Model` respectively (`docs/pages/halSpec.md`).
+ * `Asynchronous Notification Model` respectively in the HAL specification.
  *
  * **Return domain.** Both functions return `int` and report their outcome synchronously
  * through that value. This header declares no status enumeration, defines no status
@@ -96,7 +96,7 @@
  *       that must convert one of these values confirms the unit with its vendor rather
  *       than assuming it, and a test must not assert one. The repository specification
  *       records the same gap under `Data Structures and Defines`
- *       (`docs/pages/halSpec.md`).
+ *       in the HAL specification.
  * @note Every member is read at the moment of the call and is not preserved by this
  *       interface across a call, a process restart or a reboot. The interface states
  *       neither how old a returned value may be nor how often the vendor client updates
@@ -141,7 +141,7 @@ typedef struct {
  * caller-allocated dhcp6cInfo_t, and writes one client's state through it. The caller
  * allocates that storage and releases it; this interface allocates nothing on the
  * caller's behalf and hands out no memory for a caller to free. `Memory Model` in the
- * repository specification (`docs/pages/halSpec.md`) places allocation and release on
+ * repository specification places allocation and release on
  * the caller.
  *
  * **How long the storage must live is not settled by this interface.** Neither
@@ -224,7 +224,7 @@ typedef struct {
  * calling repeatedly. Because this interface delivers no notification, a caller that must
  * observe a lease being acquired, renewed, rebound or lost calls this function again and
  * compares the result with the previous one; `Asynchronous Notification Model` in the
- * repository specification (`docs/pages/halSpec.md`) states that polling is the only
+ * repository specification states that polling is the only
  * mechanism available and that no polling interval is specified.
  *
  * Which client this reads is fixed by the function called, and the only thing this
@@ -325,7 +325,7 @@ int ert_dhcp6c_get_info(dhcp6cInfo_t *pInfo);
  *
  * Two facts about applicability belong on this declaration in particular, and both come
  * from `Optional Components` in the repository specification
- * (`docs/pages/halSpec.md`). The client it names exists only on a product that has an
+ * in the HAL specification. The client it names exists only on a product that has an
  * embedded cable modem, yet the declaration is unconditional, so this function is
  * presented to callers on every platform whether or not such a client exists. And
  * **beyond the name, this interface neither defines what distinguishes the two clients
