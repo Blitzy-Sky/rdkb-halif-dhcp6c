@@ -122,7 +122,7 @@ All APIs are expected to be called from multiple processes. Due to this concurre
 
 This is compatible with the single-threaded expectation stated under `Blocking calls`: the two constrain different things. Several processes may hold this interface at once, while each individual caller is expected to drive it from one thread and therefore to need calls that return rather than suspend.
 
-<em>Derived from this repository's previous specification revision, which states the multiple-process expectation, corroborated against `include/dhcp6cApi.h`: the group-level statement carried by both declarations' shared documentation block (`:207-209`) records that an implementation must expect calls from several processes and protect its own state accordingly, and cites this topic for the requirement rather than establishing it. The header declares no process affinity, no lock and no shared context anywhere, so nothing in it constrains how that protection is achieved.</em>
+<em>Derived from this repository's previous specification revision, which states the multiple-process expectation, corroborated against `include/dhcp6cApi.h`: the group-level statement carried by both declarations' shared documentation block (`:205-208`) records that an implementation must expect calls from several processes and protect its own state accordingly, and cites this topic for the requirement rather than establishing it. The header declares no process affinity, no lock and no shared context anywhere, so nothing in it constrains how that protection is achieved.</em>
 
 ### Memory Model
 
@@ -362,6 +362,8 @@ This topic is also the boundary between the two ways of reading this document. A
 
 Per-API detail — the argument's direction and ownership, the pre-conditions, every return value and what a caller should do about each — is carried by the Doxygen block on each declaration in [include/dhcp6cApi.h](../../include/dhcp6cApi.h). Both declarations sit inside that header's `DHCPV6C_HAL_APIS` Doxygen group, in the order shown, so the generated reference presents them together on one page. Line numbers are deliberately not cited: the header's documentation comments change as they are maintained, so a line reference would go stale, whereas the identifiers and the group name will not.
 
+**Where these pointers resolve.** The locators in this topic are relative paths into `include/dhcp6cApi.h`, the form this documentation set uses throughout, so they resolve on GitHub and in a checkout \- the surface a developer using this repository reads. They do **not** resolve from inside the generated documentation site: the generator copies each link target verbatim into a page one directory below this file, so a site served with `docs/output/html` as its root has nothing above that root to reach and answers `404`, and opened from the filesystem the same target does not exist. Follow a source pointer on GitHub or in a checkout; inside the generated site, reach the same declaration through its `Files` and function-index pages.
+
 **DHCPv6 client information retrieval (2):**
 
 | API | Declared in | Purpose |
@@ -395,6 +397,8 @@ sequenceDiagram
 Three properties of this diagram are contractual rather than illustrative. The caller allocates the `dhcp6cInfo_t` before the first call, and no leg of the exchange transfers ownership of memory in either direction. Nothing precedes the first call: there is no initialization leg because the interface declares no initialization function. And the two calls are shown one after another only to name both in one place — they are independent, either may be called without the other, and a caller that needs both clients' state should not treat the two results as a single consistent snapshot.
 
 *Derived from `include/dhcp6cApi.h` — the two declarations, their single out-parameter and their return contract.*
+
+Every diagram in this document is a fenced `mermaid` block. Such blocks render as diagrams on GitHub, which the repository's `README.md` symlink makes the primary reading surface for this specification; they do **not** render in the `HTML` the documentation generator produces, where the block appears as its source text instead. That limitation is stated here rather than worked around, because the only available workaround would fix the generated site at the cost of the surface most readers use.
 
 ### State Diagram
 
