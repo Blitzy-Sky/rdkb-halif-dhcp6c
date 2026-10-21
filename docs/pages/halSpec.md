@@ -265,7 +265,7 @@ The public types and macros below are defined in `dhcp6cApi.h`, where each struc
 Three rules decide whether a caller reads the structure correctly:
 
 1. **The address fields are raw bytes, not strings.** `ipAddr`, `prefix`, `gw`, `dhcpServer` and each entry of `dnsAddrList` hold exactly `IPV6_ADDR_SIZE` bytes in wire form. A caller that needs a textual address formats the bytes itself and never passes these fields to a string function.
-2. **`numOfDns` bounds `dnsAddrList`.** A caller reads entries `0` to `numOfDns - 1` only, and never more than `MAX_IPV6_ADDR_LIST_SIZE` entries.
+2. **The count `numOfDns` bounds `dnsAddrList`.** A caller reads entries `0` to `numOfDns - 1` only, and never more than `MAX_IPV6_ADDR_LIST_SIZE` entries.
 3. **Timer units come from the vendor.** The interface gives no unit or epoch for the timer members, so a caller confirms them with its vendor before converting any of them.
 
 ### API Surface
