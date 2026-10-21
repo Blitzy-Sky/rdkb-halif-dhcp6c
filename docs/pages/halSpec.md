@@ -30,9 +30,8 @@ The diagram below describes a high-level software architecture of the DHCP6C HAL
 
 ```mermaid
 flowchart TD
-    Caller["RDK-B Middleware"] <--> HAL["DHCP6C HAL (dhcp6cApi.h)"]
-    HAL <--> Vendor["Vendor Software (libdhcp6cApi.so)"]
-    Vendor <--> Client["Vendor DHCPv6 Client"]
+    Caller["RDK-B Middleware"] <--> HAL["DHCP6C HAL - dhcp6cApi.h"]
+    HAL <--> Vendor["Vendor Software"]
 ```
 
 The DHCP6C `HAL` is the `RDK-B` interface for **reading the state of a device's `DHCPv6` clients**. It sits between the RDK-B Middleware and the vendor's `DHCPv6` client implementation, so that a caller obtains the address, prefix, gateway, `DNS` and lease timing a client currently holds without depending on which implementation provides it or which platform it runs on. This repository holds the interface definition only; the implementation is supplied by the vendor, in practice the `OEM` or the silicon supplier.
