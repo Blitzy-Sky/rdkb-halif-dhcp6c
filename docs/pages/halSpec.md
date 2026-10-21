@@ -22,7 +22,6 @@
 - `IPv6` \- Internet Protocol version 6
 - `OEM` \- Original Equipment Manufacturer
 - `RDK-B` \- Reference Design Kit for Broadband Devices
-- `SLA` \- Service Level Agreement
 
 ## Description
 
@@ -34,11 +33,11 @@ flowchart TD
     HAL <--> Vendor["Vendor Software"]
 ```
 
-The DHCP6C `HAL` is the `RDK-B` interface for **reading the state of a device's `DHCPv6` clients**. It sits between the RDK-B Middleware and the vendor's `DHCPv6` client implementation, so that a caller obtains the address, prefix, gateway, `DNS` and lease timing a client currently holds without depending on which implementation provides it or which platform it runs on. This repository holds the interface definition only; the implementation is supplied by the vendor, in practice the `OEM` or the silicon supplier.
+The DHCP6C HAL is the `RDK-B` interface for **reading the state of a device's `DHCPv6` clients**. It sits between the RDK-B Middleware and the vendor's `DHCPv6` client implementation, so that a caller obtains the address, prefix, gateway, `DNS` and lease timing a client currently holds without depending on which implementation provides it or which platform it runs on. This repository holds the interface definition only; the implementation is supplied by the vendor, in practice the `OEM` or the silicon supplier.
 
-The interface declares **two functions, both reads**: one for the `E-Router` `DHCPv6` client and one for the `ECM` `DHCPv6` client. No call configures, starts or stops a client, renews or releases a lease, or subscribes to a change. A caller reads a snapshot; it does not drive the protocol.
+The interface declares two functions, both reads: one for the `E-Router` `DHCPv6` client and one for the `ECM` `DHCPv6` client. No call configures, starts or stops a client, renews or releases a lease, or subscribes to a change. A caller reads a snapshot; it does not drive the protocol.
 
-**No dedicated `RDK-B` middleware service owns this interface.** The caller, shown as RDK-B Middleware in the diagrams, is any `RDK-B` component that needs `DHCPv6` client state. It links the vendor library directly, so no service has to be stopped before the interface is exercised.
+**No dedicated `RDK-B` middleware service owns this interface:** The caller, shown as RDK-B Middleware in the diagrams, is any `RDK-B` component that needs `DHCPv6` client state. It links the vendor library directly, so no service has to be stopped before the interface is exercised.
 
 ## Optional Components
 
@@ -57,7 +56,7 @@ The requirements in this block govern how an implementation behaves at run time 
 
 ### Initialization and Startup
 
-**This interface has no initialization or teardown entry point.** A caller reads values without opening or closing a session. The two functions it may call are:
+**This interface has no initialization or teardown entry point:** A caller reads values without opening or closing a session. The two functions it may call are:
 
 - `ert_dhcp6c_get_info()` \- retrieves the current state and configuration of the `E-Router` `DHCPv6` client.
 - `ecm_dhcp6c_get_info()` \- retrieves the current state and configuration of the `ECM` `DHCPv6` client.
@@ -70,12 +69,12 @@ What must be ready is the vendor side. Bringing up and configuring the `DHCPv6` 
 
 This interface is **not inherently required to be thread-safe**. It is the responsibility of the calling module or component to ensure that all interactions with the APIs are properly synchronized.
 
-**Implementation Guidance for Vendors:**
+**Implementation guidance for vendors:**
 
 Vendors are free to use internal threading or event mechanisms within their implementation as needed to fulfill operational requirements. However, any such mechanisms must:
 
-- **Synchronize Access:** Implement appropriate synchronization primitives, such as mutexes or semaphores, to prevent race conditions and ensure data integrity when accessing the APIs.
-- **Resource Management:** Ensure proper cleanup and release of any resources, such as memory and threads, allocated during the lifetime of the instance, especially during module shutdown or disconnection.
+- **Synchronize access:** Implement appropriate synchronization primitives, such as mutexes or semaphores, to prevent race conditions and ensure data integrity when accessing the APIs.
+- **Resource management:** Ensure proper cleanup and release of any resources, such as memory and threads, allocated during the lifetime of the instance, especially during module shutdown or disconnection.
 
 A caller that reads from more than one thread must serialize its own calls and must not share one `dhcp6cInfo_t` between concurrent calls, because two calls filling one instance may interleave their writes.
 
@@ -100,27 +99,21 @@ The only memory that crosses this interface is the `dhcp6cInfo_t` a caller passe
 
 ### Power Management Requirements
 
-The `HAL` is not involved in any power management operation: it neither participates in nor requires involvement in power state transitions, wake event configuration or resource throttling.
+The HAL is not involved in any power management operation: it neither participates in nor requires involvement in power state transitions, wake event configuration or resource throttling.
 
 ### Asynchronous Notification Model
 
-**There are no asynchronous notifications.** A caller that needs to observe a lease being acquired, renewed, rebound or lost **polls** `ert_dhcp6c_get_info()` or `ecm_dhcp6c_get_info()` and compares successive results, typically the state machine position, the configuration attempt count and the lease timers in `dhcp6cInfo_t`.
+**There are no asynchronous notifications:** A caller that needs to observe a lease being acquired, renewed, rebound or lost **polls** `ert_dhcp6c_get_info()` or `ecm_dhcp6c_get_info()` and compares successive results, typically the state machine position, the configuration attempt count and the lease timers in `dhcp6cInfo_t`.
 
 ### Blocking calls
 
-**Synchronous Result:** Both functions operate synchronously and deliver their outcome as their return value, so a caller learns it at the call site.
+**Synchronous result:** Both functions operate synchronously and deliver their outcome as their return value, so a caller learns it at the call site.
 
-**Caller Placement:** A caller does not depend on either call returning promptly. It places each call where a delay is survivable and applies its own timeout where an unresponsive call would be a failure.
+**Caller placement:** A caller does not depend on either call returning promptly. It places each call where a delay is survivable and applies its own timeout where an unresponsive call would be a failure.
 
 ### Internal Error Handling
 
-**Synchronous Error Handling:** All APIs must return errors synchronously as a return value. This ensures immediate notification of errors to the caller.
-
-**Internal Error Reporting:** The `HAL` is responsible for reporting any internal system errors, such as an out-of-memory condition, through the return value.
-
-**Focus on Logging for Errors:** For system errors, the `HAL` should prioritize logging the error details for further investigation and resolution. See `Logging and debugging requirements`.
-
-Both functions return `int` and distinguish two outcomes:
+Both functions return their outcome synchronously as an `int`, which distinguishes two outcomes:
 
 | Outcome | Caller action |
 | --- | --- |
@@ -131,7 +124,7 @@ Neither outcome has a symbolic name or a numeric value in this interface, so a c
 
 ### Persistence Model
 
-There is no requirement for `HAL` to persist any setting information. The caller is responsible to persist any settings related to their implementation.
+There is no requirement for HAL to persist any setting information. The caller is responsible to persist any settings related to their implementation.
 
 Every value a caller reads is owned by the vendor's `DHCPv6` client and retrieved at the moment of the call; this interface stores nothing across a call, a process restart or a reboot.
 
@@ -143,19 +136,9 @@ The following non-functional requirements apply to any implementation of this in
 
 The component is required to record all errors and critical informative messages to aid in identifying, debugging, and understanding the functional flow of the system. Logging should be implemented using the `syslog` method, as it provides robust logging capabilities suited for system-level software. The use of `printf` is discouraged unless `syslog` is not available.
 
-All `HAL` components must adhere to a consistent logging process. When logging is necessary, it should be performed into the `dhcp6c_vendor_hal.log` file, which is located in either the `/var/tmp/` or `/rdklogs/logs/` directories.
+All HAL components must adhere to a consistent logging process. When logging is necessary, it should be performed into the `dhcp6c_vendor_hal.log` file, which is located in either the `/var/tmp/` or `/rdklogs/logs/` directories.
 
-Logs must be categorized according to the following log levels, as defined by the Linux standard logging system, listed here in descending order of severity:
-
-- **FATAL:** Critical conditions, typically indicating system crashes or severe failures that require immediate attention.
-- **ERROR:** Non-fatal error conditions that nonetheless significantly impede normal operation.
-- **WARNING:** Potentially harmful situations that do not yet represent errors.
-- **NOTICE:** Important but not error-level events.
-- **INFO:** General informational messages that highlight system operations.
-- **DEBUG:** Detailed information typically useful only when diagnosing problems.
-- **TRACE:** Very fine-grained logging to trace the internal flow of the system.
-
-Each log entry should include a timestamp, the log level, and a message describing the event or condition. This standard format will facilitate easier parsing and analysis of log files across different vendors and components.
+Log levels follow the Linux standard logging system, in descending order of severity: `FATAL`, `ERROR`, `WARNING`, `NOTICE`, `INFO`, `DEBUG` and `TRACE`. Each log entry carries a timestamp, the log level and a message describing the event or condition.
 
 On a failed retrieval, an implementation should log which client was requested and what prevented the read, because the return value does not carry the cause.
 
@@ -163,21 +146,19 @@ Implementations must not log credentials, secrets, security-sensitive informatio
 
 ### Memory and performance requirements
 
-**Resource Use:** An implementation should not contribute disproportionately to memory or `CPU` utilization during normal operation, and its resource use should be commensurate with the operation requested. Each call returns a **fixed-size structure** with no variable-length or callee-allocated part, so the cost of transferring the result does not grow with the state of the client.
+**Resource use:** An implementation should not contribute disproportionately to memory or `CPU` utilization during normal operation, and its resource use should be commensurate with the operation requested. Each call returns a **fixed-size structure** with no variable-length or callee-allocated part, so the cost of transferring the result does not grow with the state of the client.
 
 ### Quality Control
 
-To ensure the highest quality and reliability, it is strongly recommended that third-party quality assurance tools like `Coverity`, `Black Duck`, and `Valgrind` be employed to thoroughly analyze the implementation. The goal is to detect and resolve potential issues such as memory leaks, memory corruption, or other defects before deployment.
+An implementation should pass analysis with third-party tools such as `Coverity`, `Black Duck` and `Valgrind` without reported issues. Neither the HAL implementation nor the vendor software beneath it may introduce memory leaks or memory corruption.
 
-Furthermore, both the `HAL` wrapper and any third-party software interacting with it must prioritize robust memory management practices. This includes meticulous allocation, deallocation, and error handling to guarantee a stable and leak-free operation.
+This HAL is not available on the HUB6 or XER10 reference platforms, so the runtime behaviour this document describes has not been observed on reference hardware.
 
-**Documentation Maintenance:** Any change to a file listed under `Source References` obliges a review of this document. The responsible reviewers are the repository maintainers: a change is raised as an issue at `github.com/rdkcentral/rdkb-halif-dhcp6c/issues` and submitted as a pull request, which the team reviews and merges, as `CONTRIBUTING.md` describes.
-
-**Verification Limit:** This `HAL` is not available on the HUB6 or XER10 reference platforms, so the runtime behavior this document describes has not been observed on reference hardware.
+Any change to a file listed under `Source References` obliges a review of this document by the repository maintainers, through the issue and pull-request process `CONTRIBUTING.md` describes.
 
 ### Licensing
 
-The DHCP6C `HAL` implementation is expected to be released under the Apache License 2.0. The interface header carries that license notice, and the full text is in the repository-root `LICENSE` file.
+The interface definition is licensed under the Apache License 2.0, with the full text in `LICENSE` and the attribution notice in `NOTICE`. An implementation of this interface is expected to be released under the Apache License 2.0.
 
 ### Build Requirements
 
@@ -187,21 +168,19 @@ This repository supplies the interface header only; the library is built by the 
 
 ### Variability Management
 
-The role of adjusting the interface, guided by versioning, rests solely within architecture requirements. Thereafter, vendors are obliged to align their implementation with a designated version of the interface. As per Service Level Agreement (`SLA`) terms, they may transition to newer versions based on demand needs.
+Changes to the interface are controlled by versioning. Vendors implement a designated version of the interface and move to later versions as their service agreements require. Each interface version follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html), and vendor code complies with a specific version.
 
-Each API interface will be versioned using [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html), and the vendor code will comply with a specific version of the interface.
-
-This interface has a single variant: no compile-time flag adds or removes any part of it (see `Optional Components`). Its version is identified by the repository's release tag rather than by a macro in the header.
+This interface has a single variant: no compile-time flag adds or removes any part of it (see `Optional Components`). The interface version is identified by the repository's release tag.
 
 ### Platform or Product Customization
 
-This interface has **no platform or product customization surface**: the same declarations, defines and structure are presented on every platform, and product-specific behavior is confined to the vendor implementation. Which `DHCPv6` clients a product has is a matter of applicability, described under `Optional Components`.
+This interface has no platform or product customization surface: the same declarations, defines and structure are presented on every platform, and product-specific behavior is confined to the vendor implementation. Which `DHCPv6` clients a product has is a matter of applicability, described under `Optional Components`.
 
 ## Interface API Documentation
 
-All `HAL` function prototypes and datatype definitions are available in the `dhcp6cApi.h` file.
+All HAL function prototypes and datatype definitions are available in the `dhcp6cApi.h` file.
 
-1. Components/Process must include `dhcp6cApi.h` to make use of DHCP6C `HAL` capabilities.
+1. Components/Process must include `dhcp6cApi.h` to make use of DHCP6C HAL capabilities.
 2. Components/Process should add linker dependency for `libdhcp6cApi.so`.
 
 ### Theory of operation and key concepts
@@ -210,20 +189,20 @@ The interface has one central concept: a `DHCPv6` client, owned and operated by 
 
 #### Object Lifecycles
 
-- **No Explicit Object Creation:** The DHCP6C `HAL` interface does not involve explicit creation or destruction of objects within the `HAL` itself. The primary "object" in this context is the `DHCPv6` client configuration and state information, which is maintained by the underlying vendor implementation.
-- **Data Retrieval:** The `HAL` APIs (`ert_dhcp6c_get_info` and `ecm_dhcp6c_get_info`) are designed to retrieve existing `DHCPv6` client information from the vendor implementation and populate a `dhcp6cInfo_t` structure provided by the caller. The lifecycle of this structure is managed by the caller.
-- **No Handle and No Instance:** Neither function takes or returns a handle, a context or an interface identifier; which client is read is fixed by which function is called.
+- **No explicit object creation:** The DHCP6C HAL interface does not involve explicit creation or destruction of objects within the HAL itself. The primary "object" in this context is the `DHCPv6` client configuration and state information, which is maintained by the underlying vendor implementation.
+- **Data retrieval:** The HAL APIs (`ert_dhcp6c_get_info` and `ecm_dhcp6c_get_info`) are designed to retrieve existing `DHCPv6` client information from the vendor implementation and populate a `dhcp6cInfo_t` structure provided by the caller. The lifecycle of this structure is managed by the caller.
+- **No handle and no instance:** Neither function takes or returns a handle, a context or an interface identifier; which client is read is fixed by which function is called.
 
 #### Method Sequencing
 
-- **No Strict Sequencing:** There is no requirement for a specific order in which the methods must be called. However, it is implied that the initialization and configuration of the `DHCPv6` client within the vendor implementation would happen before the `HAL` APIs are used to retrieve information.
-- **Initialization Responsibility:** The responsibility for initializing and configuring the `DHCPv6` client lies with the vendor implementation and potentially with higher-level components that manage the network configuration.
-- **Independent Accessors:** Neither function is a precondition of the other, and calling one has no effect on what the other returns. A caller that reads both treats the two results as taken at two different moments rather than as one consistent snapshot.
+- **No strict sequencing:** There is no requirement for a specific order in which the methods must be called. However, it is implied that the initialization and configuration of the `DHCPv6` client within the vendor implementation would happen before the HAL APIs are used to retrieve information.
+- **Initialization responsibility:** The responsibility for initializing and configuring the `DHCPv6` client lies with the vendor implementation and potentially with higher-level components that manage the network configuration.
+- **Independent accessors:** Neither function is a precondition of the other, and calling one has no effect on what the other returns. A caller that reads both treats the two results as taken at two different moments rather than as one consistent snapshot.
 
 #### State-Dependent Behavior
 
-- **Implicit State Dependency:** The information returned by `ert_dhcp6c_get_info` and `ecm_dhcp6c_get_info` depends on the current state of the `DHCPv6` client within the vendor implementation.
-- **Snapshot Values:** Each call returns a snapshot, and the lease timers count down between reads. `State Diagram` lists the state values a caller can observe.
+- **Implicit state dependency:** The information returned by `ert_dhcp6c_get_info` and `ecm_dhcp6c_get_info` depends on the current state of the `DHCPv6` client within the vendor implementation.
+- **Snapshot values:** Each call returns a snapshot, and the lease timers count down between reads. `State Diagram` lists the state values a caller can observe.
 
 ### Data Structures and Defines
 
@@ -258,9 +237,9 @@ The public types and macros below are defined in `dhcp6cApi.h`, where each struc
 
 Three rules decide whether a caller reads the structure correctly:
 
-1. **The address fields are raw bytes, not strings.** `ipAddr`, `prefix`, `gw`, `dhcpServer` and each entry of `dnsAddrList` hold exactly `IPV6_ADDR_SIZE` bytes in wire form. A caller that needs a textual address formats the bytes itself and never passes these fields to a string function.
-2. **The count `numOfDns` bounds `dnsAddrList`.** A caller reads entries `0` to `numOfDns - 1` only, and never more than `MAX_IPV6_ADDR_LIST_SIZE` entries.
-3. **Timer units come from the vendor.** The interface gives no unit or epoch for the timer members, so a caller confirms them with its vendor before converting any of them.
+1. **The address fields are raw bytes, not strings:** `ipAddr`, `prefix`, `gw`, `dhcpServer` and each entry of `dnsAddrList` hold exactly `IPV6_ADDR_SIZE` bytes in wire form. A caller that needs a textual address formats the bytes itself and never passes these fields to a string function.
+2. **The count `numOfDns` bounds `dnsAddrList`:** A caller reads entries `0` to `numOfDns - 1` only, and never more than `MAX_IPV6_ADDR_LIST_SIZE` entries.
+3. **Timer units come from the vendor:** The interface gives no unit or epoch for the timer members, so a caller confirms them with its vendor before converting any of them.
 
 ### API Surface
 
@@ -300,10 +279,10 @@ The Mermaid diagrams in this document render on GitHub; the generated Doxygen si
 
 This interface exposes state as values in `dhcp6cInfo_t` but defines no state transitions, so no state diagram is drawn. A caller polls, as `Asynchronous Notification Model` describes, and interprets these members:
 
-- **Client state machine position** \- `smState`. Its values are vendor-defined, so a caller obtains their meaning from its vendor.
-- **Configuration progress** \- `configAttemps`; a rising value indicates repeated configuration attempts.
-- **Lease timing** \- `t1` and `t2`, the renewal and rebinding times; `leaseTime`, the total lease duration; `leaseGotTime`, the moment the lease was obtained; and `remainLeaseTime`, `remainRenewTime` and `remainRebindTime`, the time remaining.
-- **Assignment** \- `ipAddr`, `prefix`, `gw`, `dhcpServer`, `numOfDns` and `dnsAddrList`, the addressing and `DNS` servers the client currently holds.
+- **Client state machine position:** `smState`. Its values are vendor-defined, so a caller obtains their meaning from its vendor.
+- **Configuration progress:** `configAttemps`; a rising value indicates repeated configuration attempts.
+- **Lease timing:** `t1` and `t2`, the renewal and rebinding times; `leaseTime`, the total lease duration; `leaseGotTime`, the moment the lease was obtained; and `remainLeaseTime`, `remainRenewTime` and `remainRebindTime`, the time remaining.
+- **Assignment:** `ipAddr`, `prefix`, `gw`, `dhcpServer`, `numOfDns` and `dnsAddrList`, the addressing and `DNS` servers the client currently holds.
 
 ## Source References
 
@@ -311,3 +290,4 @@ This interface exposes state as values in `dhcp6cInfo_t` but defines no state tr
 - [rdkcentral/rdkb-halif-dhcp6c/CHANGELOG.md](https://github.com/rdkcentral/rdkb-halif-dhcp6c/blob/develop/CHANGELOG.md) — release history behind `Version History`
 - [rdkcentral/rdkb-halif-dhcp6c/CONTRIBUTING.md](https://github.com/rdkcentral/rdkb-halif-dhcp6c/blob/develop/CONTRIBUTING.md) — contribution and review process named under `Quality Control`
 - [rdkcentral/rdkb-halif-dhcp6c/LICENSE](https://github.com/rdkcentral/rdkb-halif-dhcp6c/blob/develop/LICENSE) — Apache License 2.0 text named under `Licensing`
+- [rdkcentral/rdkb-halif-dhcp6c/NOTICE](https://github.com/rdkcentral/rdkb-halif-dhcp6c/blob/develop/NOTICE) — attribution notice named under `Licensing`
