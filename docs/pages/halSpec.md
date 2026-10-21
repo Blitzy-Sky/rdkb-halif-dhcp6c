@@ -65,7 +65,7 @@ The requirements in this block govern how an implementation behaves at run time 
 
 No dependent `API` has to be initialized before either of them is invoked, and no `RDK-B` component has to be started first.
 
-What must be ready is the vendor side. Bringing up and configuring the `DHCPv6` client is the responsibility of the vendor implementation and of whatever component manages network configuration on the product; none of that work is reachable through this interface. Third-party vendors will implement these functions appropriately to meet operational requirements. `Blocking calls` states how a call behaves before the hardware is ready.
+What must be ready is the vendor side. Bringing up and configuring the `DHCPv6` client is the responsibility of the vendor implementation and of whatever component manages network configuration on the product; none of that work is reachable through this interface. Third-party vendors will implement these functions appropriately to meet operational requirements.
 
 ### Threading Model
 
@@ -109,11 +109,9 @@ The `HAL` is not involved in any power management operation: it neither particip
 
 ### Blocking calls
 
-**Synchronous and Responsive:** All APIs within this module should operate synchronously and complete within a reasonable timeframe based on the complexity of the operation. Both functions return their outcome directly, so a caller learns it at the call site.
+**Synchronous Result:** Both functions operate synchronously and deliver their outcome as their return value, so a caller learns it at the call site.
 
-**Non-Blocking Requirement:** Given the single-threaded environment in which these APIs will be called, it is imperative that they do not block or suspend execution of the main thread. Implementations must avoid long-running operations, or use asynchronous mechanisms internally where necessary, to maintain responsiveness.
-
-**Hardware Readiness:** The interface is expected to block if the hardware is not ready. A caller therefore places each call where a delay is survivable, applies its own timeout where an unresponsive call would be a failure, and after a failure re-reads later rather than treating the client's state as permanently unavailable.
+**Caller Placement:** A caller does not depend on either call returning promptly. It places each call where a delay is survivable and applies its own timeout where an unresponsive call would be a failure.
 
 ### Internal Error Handling
 
@@ -166,8 +164,6 @@ Implementations must not log credentials, secrets, security-sensitive informatio
 
 ### Memory and performance requirements
 
-**Memory Ownership:** The caller allocates and releases every structure it passes to the `HAL`'s APIs, and the vendor manages and releases any memory its implementation allocates internally, as `Memory Model` states.
-
 **Resource Use:** An implementation should not contribute disproportionately to memory or `CPU` utilization during normal operation, and its resource use should be commensurate with the operation requested. Each call returns a **fixed-size structure** with no variable-length or callee-allocated part, so the cost of transferring the result does not grow with the state of the client.
 
 ### Quality Control
@@ -178,7 +174,7 @@ Furthermore, both the `HAL` wrapper and any third-party software interacting wit
 
 **Documentation Maintenance:** Any change to a file listed under `Source References` obliges a review of this document. The responsible reviewers are the repository maintainers: a change is raised as an issue at `github.com/rdkcentral/rdkb-halif-dhcp6c/issues` and submitted as a pull request, which the team reviews and merges, as `CONTRIBUTING.md` describes.
 
-**Verification Limit:** This `HAL` is not available on the HUB6 or XER10 reference platforms, so the runtime behavior this document describes comes from the interface definition and has not been observed on reference hardware.
+**Verification Limit:** This `HAL` is not available on the HUB6 or XER10 reference platforms, so the runtime behavior this document describes has not been observed on reference hardware.
 
 ### Licensing
 
@@ -228,7 +224,6 @@ The interface has one central concept: a `DHCPv6` client, owned and operated by 
 #### State-Dependent Behavior
 
 - **Implicit State Dependency:** The information returned by `ert_dhcp6c_get_info` and `ecm_dhcp6c_get_info` depends on the current state of the `DHCPv6` client within the vendor implementation.
-- **Potential Blocking:** A call made before the underlying hardware is ready may block; see `Blocking calls`.
 - **Snapshot Values:** Each call returns a snapshot, and the lease timers count down between reads. `State Diagram` lists the state values a caller can observe.
 
 ### Data Structures and Defines
