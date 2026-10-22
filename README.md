@@ -1,1 +1,1 @@
-docs/pages/DHCP6ChalSpec.md
+docs/pages/halSpec.md
