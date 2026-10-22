@@ -273,8 +273,6 @@ sequenceDiagram
     HAL-->>Caller: Status returned, info populated on success
 ```
 
-The Mermaid diagrams in this document render on GitHub; the generated Doxygen site shows their source text.
-
 ### State Diagram
 
 This interface exposes state as values in `dhcp6cInfo_t` but defines no state transitions, so no state diagram is drawn. A caller polls, as `Asynchronous Notification Model` describes, and interprets these members:
